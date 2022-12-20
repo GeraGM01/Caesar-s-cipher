@@ -33,6 +33,9 @@ namespace CifradoCesar
 
         }
 
+        /*
+         * Implementacion del cifrado 
+         */
         private void button1_Click(object sender, EventArgs e)
         {
             txtCifrada.Text = "";
@@ -63,7 +66,6 @@ namespace CifradoCesar
                 for (int i = indexInicial; i < alfabeto.Count(); i++)
                 {
                     alfabetoAux[i] = alfabeto[itemAlfabeto];
-                    //alfabetoAux.Insert(i, alfabeto[itemAlfabeto]);
                     itemAlfabeto++;
                 }
                 //Actualizamos los valores restantes del alfabeto iniciando desde la siguiente letra que le sigue al item
@@ -138,6 +140,11 @@ namespace CifradoCesar
             }
         }
 
+        /*
+         * Recibe comp parametro una letra que sera la que va a comparar.
+         * Metodo que sirve para obtener el indice de una letra en cualquier lista de los alfabetos
+         * ya sea en el alfabeto original o en el alfabeto auxiliar que se genero de acuerdo al desplazamiento
+         */
         public int getIndexAlfabeto(string letra)
         {
             for (int i = 0; i < alfabeto.Count(); i++)
@@ -151,5 +158,125 @@ namespace CifradoCesar
             return -1;
         }
 
+        public int getIndexAlfabeto(string letra, List<string> alfabetoAux)
+        {
+            for (int i = 0; i < alfabetoAux.Count(); i++)
+            {
+                string s = alfabetoAux[i];
+                if (letra == s)
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        /*
+         * Implementacion del descifrado
+         */
+        private void button2_Click(object sender, EventArgs e)
+        {
+            //Preparacion de la entrada de texto a descifrar
+            txtPalDes.Text = "";
+            string mensajeCifrado = "";
+            List<string> intervaloC = new List<string>();
+            string c = txtCDes.Text;
+            txtDescifrado.Text = txtDescifrado.Text.ToUpper();
+            string mensaje = txtDescifrado.Text;
+            char[] delimitador = { ',', '(', ')' };
+            string[] trozos = c.Split(delimitador);
+            for (int i = 0; i < trozos.Length; i++)
+            {
+                if (trozos[i] != "")
+                {
+                    intervaloC.Add(trozos[i]);
+                }
+            }
+
+            if ((intervaloC.ElementAt(0) == "m" || intervaloC.ElementAt(0) == "M") && Convert.ToInt32(intervaloC.ElementAt(1)) > 0)
+            {
+                //Inmediatamente hacemos una copia del alfabeto en una lista auxiliar
+                List<string> alfabetoAux = new List<string>(alfabeto);
+                //Apuntamos al final de la lista del alfabeto
+                int indexFinal = alfabeto.Count;
+                int indexInicial = indexFinal - Convert.ToInt32(intervaloC.ElementAt(1));
+                //Reemplazamos los ultimos n digitos de acuerdo al intervalo
+                int itemAlfabeto = 0;
+                for (int i = indexInicial; i < alfabeto.Count(); i++)
+                {
+                    alfabetoAux[i] = alfabeto[itemAlfabeto];
+                    itemAlfabeto++;
+                }
+                //Actualizamos los valores restantes del alfabeto iniciando desde la siguiente letra que le sigue al item
+                for (int i = 0; i < indexInicial; i++)
+                {
+                    alfabetoAux[i] = alfabeto[itemAlfabeto];
+                    //alfabetoAux.Insert(i, alfabeto[itemAlfabeto]);
+                    itemAlfabeto++;
+                }
+
+                //Aqui comienza la traduccion para tener el mensaje cifrado
+
+                //buscamos el indice de la letra en nuestro alfabeto original y lo empatamos con el alfabeto que generamos 
+                foreach (char caracter in mensaje)
+                {
+                    string cAux = caracter.ToString();
+                    int indexOG = getIndexAlfabeto(cAux, alfabetoAux);
+                    string s = alfabetoAux.ElementAt(indexOG);
+                    if (indexOG != -1)
+                    {
+                        int indexAux = getIndexAlfabeto(s, alfabetoAux);
+                        string sAux = alfabeto.ElementAt(indexAux);
+                        mensajeCifrado += sAux;
+                    }
+                }
+                txtPalDes.Text = txtPalDes.Text + mensajeCifrado;
+            }
+            else if ((intervaloC.ElementAt(0) == "m" || intervaloC.ElementAt(0) == "M") && Convert.ToInt32(intervaloC.ElementAt(1)) < 0)
+            {
+                //Inmediatamente hacemos una copia del alfabeto en una lista auxiliar
+                List<string> alfabetoAux = new List<string>(alfabeto);
+
+                //Apuntamos al inicio del alfabeto
+                int indexInicial = 0;
+                int indexFinal = Convert.ToInt32(intervaloC.ElementAt(1)) * -1;
+                int indexInicialAux = alfabeto.Count() + Convert.ToInt32(intervaloC.ElementAt(1));
+
+                //Reemplazamos los primeros n digitos de acuerdo al intervalo
+                int itemAlfabeto = indexInicialAux;
+                for (int i = indexInicial; i < indexFinal; i++)
+                {
+                    alfabetoAux[i] = alfabeto[itemAlfabeto];
+                    //alfabetoAux.Insert(i, alfabeto[itemAlfabeto]);
+                    itemAlfabeto++;
+                }
+                //Actualizamos los valores restantes del alfabeto iniciando desde la siguiente letra que le sigue al item
+                int j = 0;
+                for (int i = indexFinal; i < alfabeto.Count(); i++)
+                {
+                    alfabetoAux[i] = alfabeto[j];
+                    //alfabetoAux.Insert(i, alfabeto[itemAlfabeto]);
+                    j++;
+                }
+
+                //Aqui comienza la traduccion para tener el mensaje cifrado
+
+                //buscamos el indice de la letra en nuestro alfabeto original y lo empatamos con el alfabeto que generamos 
+                foreach (char caracter in mensaje)
+                {
+                    string cAux = caracter.ToString();
+                    int indexOG = getIndexAlfabeto(cAux,alfabetoAux);
+                    string s = alfabetoAux.ElementAt(indexOG);
+                    if (indexOG != -1)
+                    {
+                        int indexAux = getIndexAlfabeto(s, alfabetoAux);
+                        string sAux = alfabeto.ElementAt(indexAux);
+                        mensajeCifrado += sAux;
+                    }
+                }
+                txtPalDes.Text = txtPalDes.Text + mensajeCifrado;
+            }
+
+        }
     }
 }
